@@ -156,10 +156,10 @@ ui <- fluidPage(
     
     mainPanel(
       leafletOutput("us_map"), # output map
-      DTOutput('us_table'), # output table
-      fluidRow(column("",
-                      tableOutput("Table"), width = 12,
-                      align = "center"))
+      DTOutput('us_table') # output table
+      # fluidRow(column("",
+      #                 tableOutput("Table"), width = 12,
+      #                 align = "center"))
       )
   )
 )
@@ -173,11 +173,11 @@ server <- function(input, output, session) {
     var_list
   })
   
-  output$Table <- renderPrint({
-    
-    names(as.data.frame(get_selected(input$tree, format = "slices")))
-    
-  })
+  # output$Table <- renderPrint({
+  #   
+  #   names(as.data.frame(get_selected(input$tree, format = "slices")))
+  #   
+  # })
   
   # add State: to actual state names
   mytext <- paste(
@@ -247,27 +247,36 @@ server <- function(input, output, session) {
   output$us_table <- renderDT(
     {
       
+      # get the input categories
       x <- get_selected(input$tree, format = "slices") |> as.data.frame() |> names()
       
-
+      # filter the dataset by input categories
       dat_s <- dat |> filter(state %in% input$state,
                   ncdp_categories %in% x[x %in% names(var_list)] | subcategory %in% x[!x %in% names(var_list)])
       
-        
+      # rename variables for printed table  
+      dat_print <- dat_s |> 
+        select(state_n, bill_number, summary, 
+               hazard_type, ncdp_categories_n, subcategory_n) |> 
+        rename(State = state_n, `Bill Number` = bill_number, `Summary` = summary, 
+               `Hazard Type` = hazard_type, `NCDP Categories` = ncdp_categories_n, 
+               `NCDP Subcategories` = subcategory_n)
       
-      dtable <- datatable(dat_s |> 
-                            select(state_n, bill_number, summary, 
-                                   hazard_type, ncdp_categories_n, subcategory_n) |> 
-                            rename(State = state_n, `Bill Number` = bill_number, `Summary` = summary, 
-                                   `Hazard Type` = hazard_type, `NCDP Categories` = ncdp_categories_n, 
-                                   `NCDP Subcategories` = subcategory_n)
-                            ,  
+      # render datatable
+      dtable <- datatable(dat_print,  
                           rownames = FALSE, 
                           escape = FALSE,
                           options = list(
                             rowsGroup = list(0,1,2,3,4),
                             pageLength = 50,
-                            columnDefs = list(list(width = '100px', targets = 0))
+                            columnDefs = list(list(width = '100px', targets = 0)),
+                            language = list(lengthMenu = 
+                                              paste("Display _MENU_ Entries for", 
+                                                    length(unique(dat_print$`Bill Number`)), 
+                                                    "Bills across", 
+                                                    length(unique(dat_print$State)),
+                                                    "States",
+                                                    sep = " "))
                           )) |> 
         formatStyle(columns = c("State"), fontWeight = 'bold')
       path <- here::here() # folder containing dataTables.rowsGroup.js

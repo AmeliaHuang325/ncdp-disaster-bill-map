@@ -82,6 +82,15 @@ us_spdf <- rgdal::readOGR(
   verbose=FALSE
 )
 
+us_spdf@data <- us_spdf@data |> 
+  left_join(
+    dat |> 
+      group_by(state) |> 
+      summarise(n_bill = length(unique(bill_number))) |> 
+      rename(NAME = state),
+    by = "NAME"
+  )
+
 # my_choices <- sort(unique(dat$state))
 
 # function
@@ -181,7 +190,8 @@ server <- function(input, output, session) {
   
   # add State: to actual state names
   mytext <- paste(
-    "State: ", us_spdf@data$NAME,"<br/>", 
+    "State: ", us_spdf@data$NAME,"<br/>",
+    "Total Number of Bills: ", us_spdf@data$n_bill,"<br/>",
     sep="") %>%
     lapply(htmltools::HTML)
   

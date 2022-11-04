@@ -5,7 +5,9 @@ account: shuyanghuang325
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 7382097
-bundleId: 6428110
+bundleId: 6473528
 url: https://shuyanghuang325.shinyapps.io/ncdp-disaster-bill-map/
-when: 1666379212.45258
-lastSyncTime: 1666379212.4526
+when: 1667526604.27616
+lastSyncTime: 1667526604.27618
+asMultiple: FALSE
+asStatic: FALSE
